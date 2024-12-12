@@ -1,0 +1,19 @@
+{
+  "name": "Agent Class for Arduino",
+  "keywords": "arduino,agent,variable,event,callback",
+  "description": "The Agent class allows efficient management of event-based callbacks for variable changes.",
+  "authors":
+  {
+    "name": "jzolee",
+    "url": "https://github.com/jzolee",
+    "maintainer": true
+  },
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/jzolee/AgentClassForArduino.git"
+  },
+  "version": "1.0.0",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
