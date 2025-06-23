@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <vector>
+#include <functional>
 
 #if !defined(AGENT_LOCK)  ||  !defined(AGENT_UNLOCK)
 #define AGENT_LOCK
@@ -10,8 +11,8 @@
 
 template <typename Type>
 class Agent {
-    //using FuncPtr =  std::function<void(Type)>;
-    using FuncPtr = void(*)(Type);
+    using FuncPtr =  std::function<void(Type)>;
+    //using FuncPtr = void(*)(Type);
 
 public:
     Agent(Type init) : _value(init) {}
