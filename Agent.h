@@ -11,17 +11,60 @@
 
 template <typename Type>
 class Agent {
-    using FuncPtr =  std::function<void(Type)>;
+    using FuncPtr = std::function<void(Type)>;
     //using FuncPtr = void(*)(Type);
 
 public:
     Agent(Type init) : _value(init) {}
+
+    // Copy constructor
+    Agent(const Agent& other) = default;
+
+    // Move constructor
+    Agent(Agent&& other) noexcept = default;
+
+    // Implicit (explicit) conversion
+    explicit operator Type() const { return _value; }
+
+    // Assignment operator
+    Agent& operator=(const Type& other) { set(other); return *this; }
+
+    // Copy assignment operator
+    Agent& operator=(const Agent& other) = default;
+
+    // Move assignment operator
+    Agent& operator=(Agent&& other) noexcept = default;
+
+    // Relation operators
+    bool operator==(const Type& other) const { return _value == other; }
+    bool operator!=(const Type& other) const { return _value != other; }
+    bool operator<(const Type& other) const { return _value < other; }
+    bool operator>(const Type& other) const { return _value > other; }
+    bool operator<=(const Type& other) const { return _value <= other; }
+    bool operator>=(const Type& other) const { return _value >= other; }
+
     int attach(const FuncPtr callback) {
         AGENT_LOCK;
         _callbacks.push_back({ callback, ++_client_id });
         AGENT_UNLOCK;
         return _client_id;
     }
+
+    void detach(const int id) {
+        AGENT_LOCK;
+        _callbacks.erase(
+            std::remove_if(_callbacks.begin(), _callbacks.end(),
+                [id](const auto& cb) { return cb.id == id; }),
+            _callbacks.end());
+        AGENT_UNLOCK;
+    }
+
+    void detachAll() {
+        AGENT_LOCK;
+        _callbacks.clear();
+        AGENT_UNLOCK;
+    }
+
     Type get() const { return _value; }
     void set(const Type value, const int exclude_id = 0) {
         AGENT_LOCK;
