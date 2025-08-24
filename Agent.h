@@ -3,8 +3,9 @@
 #include <Arduino.h>
 #include <vector>
 #include <functional>
+#include <algorithm> // For std::remove_if
 
-#if !defined(AGENT_LOCK)  ||  !defined(AGENT_UNLOCK)
+#if !defined(AGENT_LOCK) || !defined(AGENT_UNLOCK)
 #define AGENT_LOCK
 #define AGENT_UNLOCK
 #endif
@@ -12,36 +13,35 @@
 template <typename Type>
 class Agent {
     using FuncPtr = std::function<void(Type)>;
-    //using FuncPtr = void(*)(Type);
 
 public:
     Agent(Type init) : _value(init) {}
 
-    // Copy constructor
     Agent(const Agent& other) = default;
-
-    // Move constructor
     Agent(Agent&& other) noexcept = default;
+    Agent& operator=(Agent&& other) noexcept = default;
+    Agent& operator=(const Agent& other) { if (this != &other) { set(other.get()); } return *this; }
 
-    // Implicit (explicit) conversion
     explicit operator Type() const { return _value; }
 
-    // Assignment operator
     Agent& operator=(const Type& other) { set(other); return *this; }
 
-    // Copy assignment operator
-    Agent& operator=(const Agent& other) = default;
-
-    // Move assignment operator
-    Agent& operator=(Agent&& other) noexcept = default;
-
-    // Relation operators
     bool operator==(const Type& other) const { return _value == other; }
     bool operator!=(const Type& other) const { return _value != other; }
     bool operator<(const Type& other) const { return _value < other; }
     bool operator>(const Type& other) const { return _value > other; }
     bool operator<=(const Type& other) const { return _value <= other; }
     bool operator>=(const Type& other) const { return _value >= other; }
+
+    Agent<Type>& operator++() { set(_value + 1); return *this; }
+    Agent<Type>& operator--() { set(_value - 1); return *this; }
+    Agent<Type> operator++(int) { Agent temp = *this; set(_value + 1); return temp; }
+    Agent<Type> operator--(int) { Agent temp = *this; set(_value - 1); return temp; }
+
+    Agent<Type>& operator+=(const Type& other) { set(_value + other); return *this; }
+    Agent<Type>& operator-=(const Type& other) { set(_value - other); return *this; }
+    Agent<Type>& operator*=(const Type& other) { set(_value * other); return *this; }
+    Agent<Type>& operator/=(const Type& other) { set(_value / other); return *this; }
 
     int attach(const FuncPtr callback) {
         AGENT_LOCK;
@@ -68,6 +68,7 @@ public:
     }
 
     Type get() const { return _value; }
+
     void set(const Type value, const int exclude_id = 0) {
         AGENT_LOCK;
         if (!(_value == value)) {
@@ -90,3 +91,43 @@ private:
 
     std::vector<cb_s> _callbacks;
 };
+
+template <typename Type>
+Type operator+(const Agent<Type>& lhs, const Type& rhs) {
+    return lhs.get() + rhs;
+}
+
+template <typename Type>
+Type operator+(const Type& lhs, const Agent<Type>& rhs) {
+    return lhs + rhs.get();
+}
+
+template <typename Type>
+Type operator-(const Agent<Type>& lhs, const Type& rhs) {
+    return lhs.get() - rhs;
+}
+
+template <typename Type>
+Type operator-(const Type& lhs, const Agent<Type>& rhs) {
+    return lhs - rhs.get();
+}
+
+template <typename Type>
+Type operator*(const Agent<Type>& lhs, const Type& rhs) {
+    return lhs.get() * rhs;
+}
+
+template <typename Type>
+Type operator*(const Type& lhs, const Agent<Type>& rhs) {
+    return lhs * rhs.get();
+}
+
+template <typename Type>
+Type operator/(const Agent<Type>& lhs, const Type& rhs) {
+    return lhs.get() / rhs;
+}
+
+template <typename Type>
+Type operator/(const Type& lhs, const Agent<Type>& rhs) {
+    return lhs / rhs.get();
+}
