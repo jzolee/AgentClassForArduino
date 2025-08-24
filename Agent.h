@@ -54,7 +54,9 @@ public:
         AGENT_LOCK;
         _callbacks.erase(
             std::remove_if(_callbacks.begin(), _callbacks.end(),
-                [id](const auto& cb) { return cb.id == id; }),
+                [id](const Agent<Type>::cb_s& cb) {
+                    return cb.id == id;
+                }),
             _callbacks.end());
         AGENT_UNLOCK;
     }
